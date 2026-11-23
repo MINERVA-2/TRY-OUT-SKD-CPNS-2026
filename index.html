@@ -141,6 +141,19 @@ table.pg th{background:var(--surface2)}
 .explain{border:1px solid var(--line);border-left:5px solid var(--accent);background:var(--surface2);border-radius:10px;padding:14px 16px;margin-top:16px;font-size:15px}
 .explain b{display:block;margin-bottom:4px}
 .ansline{font-size:14.5px;margin-top:12px}
+
+/* ---------- Figural figures ---------- */
+.figwrap{margin:2px 0 18px}
+.figrow{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
+.figcell{display:flex;flex-direction:column;align-items:center;gap:4px}
+.figcell svg{width:88px;height:88px;background:var(--surface2);border:1px solid var(--line);border-radius:10px;color:var(--ink)}
+.figlab{font-size:12.5px;font-weight:700;color:var(--muted)}
+.figsep{align-self:flex-start;font-size:22px;font-weight:800;color:var(--muted);padding-top:30px}
+.figmatrix{display:grid;grid-template-columns:repeat(3,88px);gap:8px}
+.figmatrix .figcell svg{width:88px;height:88px}
+@media (max-width:380px){.figcell svg{width:76px;height:76px}.figmatrix{grid-template-columns:repeat(3,76px)}.figmatrix .figcell svg{width:76px;height:76px}}
+.opt.figopt .otext{display:flex;justify-content:center}
+.opt svg{width:62px;height:62px;color:var(--ink)}
 footer{margin-top:36px;font-size:13px;color:var(--muted);text-align:center}
 </style>
 </head>
@@ -288,6 +301,115 @@ function $(id){ return document.getElementById(id); }
 function esc(s){ return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
 function qByN(n){ return QUESTIONS[n-1]; }
 function answeredCount(){ return Object.keys(state.answers).length; }
+
+/* ---------- Figural figures (TIU soal 58-65, kedua paket) ---------- */
+var __figUid = 0;
+var DOTPOS = [[0,0],[-12,-8],[12,8],[-12,8],[12,-8],[0,-15],[0,15],[-18,0],[18,0],[-6,-13],[6,13],[0,6]];
+function polyPts(cx,cy,r,n){
+  var pts=[];
+  for(var i=0;i<n;i++){ var a=(-90+i*360/n)*Math.PI/180; pts.push((cx+r*Math.cos(a)).toFixed(1)+","+(cy+r*Math.sin(a)).toFixed(1)); }
+  return pts.join(" ");
+}
+function starPts(cx,cy,r){
+  var pts=[];
+  for(var i=0;i<10;i++){ var a=(-90+i*36)*Math.PI/180, rr=(i%2===0)?r:r*0.45; pts.push((cx+rr*Math.cos(a)).toFixed(1)+","+(cy+rr*Math.sin(a)).toFixed(1)); }
+  return pts.join(" ");
+}
+function shapeEl(o,cx,cy,r,attrs){
+  if(o==="c") return '<circle cx="'+cx+'" cy="'+cy+'" r="'+r+'" '+attrs+'/>';
+  if(typeof o==="number") return '<polygon points="'+polyPts(cx,cy,r,o)+'" '+attrs+'/>';
+  if(o==="rect") return '<rect x="'+(cx-r)+'" y="'+(cy-r*0.62)+'" width="'+(2*r)+'" height="'+(1.24*r)+'" '+attrs+'/>';
+  if(o==="trap") return '<polygon points="'+(cx-0.55*r)+','+(cy-0.55*r)+' '+(cx+0.55*r)+','+(cy-0.55*r)+' '+(cx+0.95*r)+','+(cy+0.55*r)+' '+(cx-0.95*r)+','+(cy+0.55*r)+'" '+attrs+'/>';
+  if(o==="para") return '<polygon points="'+(cx-0.45*r)+','+(cy-0.55*r)+' '+(cx+0.95*r)+','+(cy-0.55*r)+' '+(cx+0.45*r)+','+(cy+0.55*r)+' '+(cx-0.95*r)+','+(cy+0.55*r)+'" '+attrs+'/>';
+  return "";
+}
+function dotsSVG(n,r){
+  var s="";
+  for(var i=0;i<n && i<DOTPOS.length;i++) s+='<circle cx="'+(50+DOTPOS[i][0])+'" cy="'+(50+DOTPOS[i][1])+'" r="'+r+'" fill="currentColor"/>';
+  return s;
+}
+function starsSVG(n){
+  var s="";
+  for(var i=0;i<n && i<DOTPOS.length;i++) s+='<polygon points="'+starPts(50+DOTPOS[i][0],50+DOTPOS[i][1],5.5)+'" fill="currentColor"/>';
+  return s;
+}
+var QDPATH = ["M50 50 L50 14 A36 36 0 0 1 86 50 Z","M50 50 L86 50 A36 36 0 0 1 50 86 Z","M50 50 L50 86 A36 36 0 0 1 14 50 Z","M50 50 L14 50 A36 36 0 0 1 50 14 Z"];
+function cellSVG(spec){
+  if(spec==="x" || (spec && spec.x)) return '<svg viewBox="0 0 100 100" role="img" aria-label="Gambar yang ditanyakan"><rect x="8" y="8" width="84" height="84" fill="none" stroke="currentColor" stroke-width="2.5" stroke-dasharray="6 5"/><text x="50" y="64" font-size="36" font-weight="700" text-anchor="middle" fill="currentColor">?</text></svg>';
+  var uid = ++__figUid, inner = "";
+  if(spec.box) inner += '<rect x="8" y="8" width="84" height="84" fill="none" stroke="currentColor" stroke-width="2.5"/>';
+  if(spec.qd!=null){
+    if(spec.qd===4) inner += '<circle cx="50" cy="50" r="36" fill="currentColor" opacity="0.45"/>';
+    else inner += '<path d="'+QDPATH[spec.qd]+'" fill="currentColor" opacity="0.5"/>';
+    inner += '<circle cx="50" cy="50" r="36" fill="none" stroke="currentColor" stroke-width="3"/>';
+    inner += '<line x1="14" y1="50" x2="86" y2="50" stroke="currentColor" stroke-width="2"/>';
+    inner += '<line x1="50" y1="14" x2="50" y2="86" stroke="currentColor" stroke-width="2"/>';
+  } else if(spec.ar!=null){
+    inner += '<g transform="rotate('+spec.ar+' 50 50)">';
+    if(spec.fin==="L") inner += '<polygon points="50,80 50,60 32,80" fill="currentColor" opacity="0.75"/>';
+    if(spec.fin==="R") inner += '<polygon points="50,80 50,60 68,80" fill="currentColor" opacity="0.75"/>';
+    inner += '<line x1="50" y1="80" x2="50" y2="32" stroke="currentColor" stroke-width="5" stroke-linecap="round"/>';
+    inner += '<polygon points="50,10 34,34 66,34" fill="currentColor"/>';
+    inner += '</g>';
+  } else {
+    var body = "";
+    if(spec.sh!=null){
+      body += '<defs><clipPath id="fc'+uid+'">'+shapeEl(spec.o,50,50,40,'fill="#000" stroke="none"')+'</clipPath></defs>';
+      body += '<g clip-path="url(#fc'+uid+')"><rect x="10" y="8" width="'+(80*spec.sh)+'" height="84" fill="currentColor" opacity="0.45"/></g>';
+    }
+    body += shapeEl(spec.o,50,50,40,'fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"');
+    if(spec.i) body += shapeEl(spec.i,50,50,17,'fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"');
+    if(spec.d) body += dotsSVG(spec.d,3.4);
+    if(spec.s) body += starsSVG(spec.s);
+    if(spec.sz) body = '<g transform="translate(50 50) scale('+spec.sz+') translate(-50 -50)">'+body+'</g>';
+    inner += body;
+  }
+  return '<svg viewBox="0 0 100 100" role="img" aria-hidden="true">'+inner+'</svg>';
+}
+function figCell(spec,label){
+  return '<div class="figcell">'+cellSVG(spec)+(label?'<span class="figlab">'+label+'</span>':"")+'</div>';
+}
+function figHTML(fig){
+  var i, h = '<div class="figwrap">';
+  if(fig.type==="analogy"){
+    h += '<div class="figrow">'+figCell(fig.cells[0],"Gambar A")+'<span class="figsep">&rarr;</span>'+figCell(fig.cells[1],"Gambar B")+'<span class="figsep">:</span>'+figCell(fig.cells[2],"Gambar C")+'<span class="figsep">&rarr;</span>'+figCell("x","?")+'</div>';
+  } else if(fig.type==="serial"){
+    h += '<div class="figrow">';
+    for(i=0;i<fig.cells.length;i++) h += figCell(fig.cells[i],"Gambar "+(i+1));
+    h += figCell("x","Gambar "+(fig.cells.length+1))+'</div>';
+  } else if(fig.type==="odd"){
+    h += '<div class="figrow">';
+    for(i=0;i<fig.cells.length;i++) h += figCell(fig.cells[i],"Gambar "+(i+1));
+    h += '</div>';
+  } else if(fig.type==="matrix"){
+    h += '<div class="figmatrix">';
+    for(i=0;i<fig.cells.length;i++) h += figCell(fig.cells[i],null);
+    h += '</div>';
+  }
+  return h + '</div>';
+}
+var FIG_Q_ANALOGI = "Perhatikan gambar berikut. Gambar B adalah hasil perubahan dari Gambar A dengan suatu pola. Gambar yang berhubungan dengan Gambar C sebagaimana Gambar B berhubungan dengan Gambar A adalah \u2026";
+var FIG_Q_ODD = "Perhatikan lima gambar berikut. Satu gambar berbeda dari gambar lainnya. Gambar yang berbeda adalah \u2026";
+var FIG_Q_SERIAL = "Perhatikan urutan gambar berikut. Gambar kelima yang paling tepat untuk melanjutkan urutan tersebut adalah \u2026";
+var FIG = {
+  "p1:58": {type:"analogy", q:FIG_Q_ANALOGI, cells:[{o:"c",i:3},{o:"c",i:4},{o:4,i:3}], opts:{A:{o:4,i:3},B:{o:4,i:4},C:{o:"c",i:4},D:{o:4,i:5},E:{o:4}}},
+  "p1:59": {type:"analogy", q:FIG_Q_ANALOGI, cells:[{ar:0},{ar:90},{ar:180}], opts:{A:{ar:0},B:{ar:90},C:{ar:180},D:{ar:270},E:{ar:45}}},
+  "p1:60": {type:"odd", q:FIG_Q_ODD, cells:[{o:3,d:3},{o:4,d:4},{o:5,d:5},{o:6,d:5},{o:7,d:7}]},
+  "p1:61": {type:"odd", q:FIG_Q_ODD, cells:[{o:3},{o:"c"},{o:4},{o:"trap"},{o:"para"}]},
+  "p1:62": {type:"serial", q:FIG_Q_SERIAL, cells:[{o:3},{o:4},{o:5},{o:6}], opts:{A:{o:6},B:{o:7},C:{o:8},D:{o:"c"},E:{o:4}}},
+  "p1:63": {type:"serial", q:"Perhatikan urutan gambar berikut. Sebuah lingkaran dibagi menjadi empat bagian sama besar dan satu bagian diarsir. Bagian yang diarsir pada Gambar 5 adalah \u2026", cells:[{qd:0},{qd:1},{qd:2},{qd:3}], opts:{A:{qd:0},B:{qd:1},C:{qd:2},D:{qd:3},E:{qd:4}}},
+  "p1:64": {type:"matrix", q:"Perhatikan matriks gambar 3\u00d73 berikut. Gambar X yang tepat adalah \u2026", cells:[{o:3},{o:4},{o:5},{o:4},{o:5},{o:6},{o:5},{o:6},"x"], opts:{A:{o:6},B:{o:7},C:{o:8},D:{o:"c"},E:{o:4}}},
+  "p1:65": {type:"matrix", q:"Perhatikan matriks gambar 3\u00d73 berikut. Setiap kotak berisi titik-titik hitam. Kotak X yang tepat adalah \u2026", cells:[{box:1,d:1},{box:1,d:2},{box:1,d:3},{box:1,d:2},{box:1,d:3},{box:1,d:4},{box:1,d:3},{box:1,d:4},"x"], opts:{A:{box:1,d:3},B:{box:1,d:4},C:{box:1,d:5},D:{box:1,d:6},E:{box:1,d:7}}},
+  "p2:58": {type:"analogy", q:FIG_Q_ANALOGI, cells:[{o:4,d:1},{o:4,d:2},{o:3,d:3}], opts:{A:{o:3,d:3},B:{o:3,d:2},C:{o:4,d:4},D:{o:3,d:4},E:{o:3,d:5}}},
+  "p2:59": {type:"analogy", q:FIG_Q_ANALOGI, cells:[{ar:0,fin:"L"},{ar:0,fin:"R"},{ar:90,fin:"L"}], opts:{A:{ar:90,fin:"L"},B:{ar:90,fin:"R"},C:{ar:270,fin:"R"},D:{ar:90},E:{ar:180,fin:"R"}}},
+  "p2:60": {type:"odd", q:FIG_Q_ODD, cells:[{o:4,d:4},{o:"c",d:6},{o:3,d:3},{o:"rect",d:8},{o:5,d:10}]},
+  "p2:61": {type:"odd", q:FIG_Q_ODD, cells:[{o:4,sh:0.5},{o:"c",sh:0.5},{o:3,sh:0.5},{o:"para",sh:0.75},{o:"rect",sh:0.5}]},
+  "p2:62": {type:"serial", q:FIG_Q_SERIAL, cells:[{ar:0},{ar:45},{ar:90},{ar:135}], opts:{A:{ar:90},B:{ar:135},C:{ar:180},D:{ar:225},E:{ar:270}}},
+  "p2:63": {type:"serial", q:FIG_Q_SERIAL, cells:[{box:1,d:1},{box:1,d:3},{box:1,d:5},{box:1,d:7}], opts:{A:{box:1,d:8},B:{box:1,d:9},C:{box:1,d:10},D:{box:1,d:11},E:{box:1,d:12}}},
+  "p2:64": {type:"matrix", q:"Perhatikan matriks gambar 3\u00d73 berikut. Setiap kotak berisi bintang-bintang kecil. Kotak X yang tepat adalah \u2026", cells:[{box:1,s:3},{box:1,s:5},{box:1,s:6},{box:1,s:4},{box:1,s:6},{box:1,s:8},{box:1,s:5},{box:1,s:7},"x"], opts:{A:{box:1,s:8},B:{box:1,s:9},C:{box:1,s:10},D:{box:1,s:11},E:{box:1,s:12}}},
+  "p2:65": {type:"matrix", q:"Perhatikan matriks gambar 3\u00d73 berikut. Gambar X yang tepat adalah \u2026", cells:[{o:"c",sz:0.5},{o:4,sz:0.5},{o:3,sz:0.5},{o:"c",sz:0.78},{o:4,sz:0.78},{o:3,sz:0.78},{o:"c",sz:1.02},{o:4,sz:1.02},"x"], opts:{A:{o:3,sz:0.5},B:{o:4,sz:1.02},C:{o:3,sz:1.02},D:{o:"c",sz:1.02},E:{o:3,sz:0.78}}}
+};
+function figFor(q){ return FIG[state.pack+":"+q.n] || null; }
 function fmtTime(s){ var m=Math.floor(s/60), r=s%60; return (m<10?"0":"")+m+":"+(r<10?"0":"")+r; }
 
 function show(screen){
@@ -336,11 +458,15 @@ function renderQuestion(){
   html += '<div class="qmeta"><span class="chip">'+esc(q.section)+'</span><span class="chip cat">'+esc(q.category)+'</span><span class="chip cat">Soal '+q.n+' dari 110</span>';
   if(state.doubt[q.n]) html += '<span class="chip doubt">Ragu-ragu</span>';
   html += '</div>';
-  html += '<div class="qtext">'+esc(q.question)+'</div>';
+  var fig = figFor(q);
+  html += '<div class="qtext">'+esc(fig&&fig.q?fig.q:q.question)+'</div>';
+  if(fig) html += figHTML(fig);
   html += '<div class="opts" role="radiogroup" aria-label="Pilihan jawaban">';
   LETTERS.forEach(function(L){
     var sel = state.answers[q.n]===L;
-    html += '<button type="button" class="opt'+(sel?" sel":"")+'" data-letter="'+L+'" role="radio" aria-checked="'+sel+'"><span class="letter">'+L+'</span><span class="otext">'+esc(q.options[L])+'</span></button>';
+    var hasFigOpt = !!(fig&&fig.opts&&fig.opts[L]);
+    var oc = hasFigOpt ? cellSVG(fig.opts[L]) : esc(q.options[L]);
+    html += '<button type="button" class="opt'+(sel?" sel":"")+(hasFigOpt?" figopt":"")+'" data-letter="'+L+'" role="radio" aria-checked="'+sel+'"><span class="letter">'+L+'</span><span class="otext">'+oc+'</span></button>';
   });
   html += '</div>';
   html += '<div class="qnav">';
@@ -510,7 +636,9 @@ function renderReview(){
     var ok = userAns===q.correct;
     html += '<div class="verdict '+(ok?"ok":"no")+'">'+(ok?"✓ Benar — +5 poin":"✗ Salah — jawaban benar: "+q.correct)+'</div>';
   }
-  html += '<div class="qtext">'+esc(q.question)+'</div>';
+  var rfig = figFor(q);
+  html += '<div class="qtext">'+esc(rfig&&rfig.q?rfig.q:q.question)+'</div>';
+  if(rfig) html += figHTML(rfig);
   html += '<div class="opts">';
   LETTERS.forEach(function(L){
     var cls = "opt";
@@ -521,7 +649,9 @@ function renderReview(){
       if(L===q.correct) cls += " correct";
       else if(userAns===L) cls += " wrong";
     }
-    html += '<div class="opt '+cls.replace("opt ","")+'" style="cursor:default"><span class="letter">'+L+'</span><span class="otext">'+esc(q.options[L])+(userAns===L?' <strong>(jawaban kamu)</strong>':'')+'</span>';
+    var rHasFigOpt = !!(rfig&&rfig.opts&&rfig.opts[L]);
+    var roc = rHasFigOpt ? cellSVG(rfig.opts[L]) : esc(q.options[L]);
+    html += '<div class="opt '+cls.replace("opt ","")+(rHasFigOpt?" figopt":"")+'" style="cursor:default"><span class="letter">'+L+'</span><span class="otext">'+roc+(userAns===L?' <strong>(jawaban kamu)</strong>':'')+'</span>';
     if(q.section==="TKP") html += '<span class="scorebadge">Skor '+q.scores[L]+(q.scores[L]===5?" · terbaik":"")+'</span>';
     html += '</div>';
   });
